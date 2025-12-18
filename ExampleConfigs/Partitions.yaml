@@ -1,0 +1,34 @@
+# Used only for bootstrap of a new system to configure the new devices partitions.
+# Partition formulae are largly system specific, as each system will have different disk configurations and sizes.
+# This is useful to programatically create your new system - allowing you to see it all layed out before you apply it.
+
+disks:
+  - alias: "root"
+    partitioning:
+      scheme: gpt
+      partitions:
+        boot:
+          label: BOOT
+          filesystem: vfat
+          type: 1 # 1 in fdisk is EFI System
+          size: 512M
+          mountpoint: "/boot/efi"
+          order: 1
+        root: # Filesystem for "root" is implicitly btrfs and the mountpoint is implicitly / and subvolumes /@system and /@revisions
+          label: ROOT
+          order: 2
+          size: 10G
+
+  - path: "/dev/sdb1"
+    partitioning:
+      scheme: gpt
+      partitions:
+        games:
+          label: Games
+          filesystem: btrfs
+          mountpoint: "/media/Games"
+          subvolumes:
+            - volume: "@Steam" # Relative to device mountpoint
+              mountpoint: "/media/Games/Steam" # Mountpoint relative to the root ( / )
+            - volume: "@Other"
+              mountpoint: "/media/Games/Other"

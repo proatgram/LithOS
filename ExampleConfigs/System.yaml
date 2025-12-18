@@ -1,0 +1,25 @@
+# The entrypoint, or starting point formulae must have config:system in it
+
+inherits:
+  - Base
+  - KDE
+
+config:
+  system:
+    hostname: "lithos-pc"
+    timezone: "UTC"
+    locale: "en_US.UTF-8"
+    keymap: "us"
+
+    users:
+      - username: "thetimbrick"
+        fullname: "System Administrator"
+        groups: ["wheel"]
+        shell: "/usr/bin/zsh"
+      
+  packages:
+    development:
+      - cmake
+      - git
+      - make
+      - nvim

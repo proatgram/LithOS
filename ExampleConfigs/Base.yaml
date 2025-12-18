@@ -1,0 +1,19 @@
+config:
+  packages:
+    base:
+      - base-devel # Complete environment for makepkg
+      - linux
+      - linux-firmware
+      - btrfs-progs
+      - grub
+      - networkmanager
+      - arch-install-scripts # Used to create new environment for each snapshot
+      - sudo
+      - nano
+  services:
+    - networkmanager
+
+  files:
+    - file: /etc/sudoers # Allow all users in group wheel to access sudo
+      replace: "# %wheel ALL=(ALL:ALL) ALL"
+      contents: "%wheel ALL=(ALL:ALL) ALL"

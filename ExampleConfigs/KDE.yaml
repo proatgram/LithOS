@@ -1,0 +1,42 @@
+config:
+  packages:
+    KDE:
+      - plasma
+      - kde-applications
+      - system-config-printer
+      - cups
+      - cups-pdf
+      - avahi
+      - nss-mdns
+
+  services:
+    system:
+      - sddm
+      - cups
+      - avahi-daemon
+
+  files:
+    - path: /etc/sddm.conf.d/kde_settings.conf # For SDDM theming and KDE defaults
+      create: true # If not exists, creates. If exists, replaces
+      permissions: 644 # Only applied if the file is created
+      contents: |
+        [Autologin]
+        Relogin=false
+        Session=
+        User=
+
+        [General]
+        HaltCommand=/usr/bin/systemctl poweroff
+        RebootCommand=/usr/bin/systemctl reboot
+
+        [Theme]
+        Current=breeze
+        CursorTheme=breeze_cursors
+        Font=Noto Sans,10,-1,0,400,0,0,0,0,0,0,0,0,0,0,1
+
+        [Users]
+        MaximumUid=60513
+        MinimumUid=1000
+    - path: /etc/nsswitch.conf # For nss-mdns and printer
+      after: "hosts: " # Allows you to specify a string for this to be added after
+      contents: "mdns_minimal [NOTFOUND=return]"
