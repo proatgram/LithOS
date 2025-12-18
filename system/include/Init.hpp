@@ -16,6 +16,7 @@ class Init {
         Init(configs::DiskConfiguration diskConfiguration, std::optional<std::map<std::string, std::string>> aliasMappings = std::nullopt);
 
         auto SetupPartitions() -> void;
+        auto SetupFilesystems() -> void;
 
     private:
         inline static constexpr std::string_view DEFAULT_DISK_CONFIGURATION = R"EOF(

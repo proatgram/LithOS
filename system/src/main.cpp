@@ -11,4 +11,5 @@ auto main(int argc, char **argv) -> int {
     Init init = Init("/dev/loop0", "5GiB", "10GiB");
 
     init.SetupPartitions();
+    init.SetupFilesystems();
 }

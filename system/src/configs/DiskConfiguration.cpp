@@ -90,6 +90,8 @@ DiskConfiguration::DiskConfiguration(YAML::Node config) {
                 partitionOrder = partitionProperties["order"].as<uint8_t>();
             } else if (partitioning["partitions"].size() > 1) {
                 throw std::runtime_error("Invalid disk partition configuration: Must have attribute \"order\" when specifying more than one partition.");
+            } else {
+                partitionOrder = 1;
             } // Order optional unless number of partitions is > 1
 
             if (partitionProperties["label"]) {
@@ -133,10 +135,12 @@ DiskConfiguration::DiskConfiguration(YAML::Node config) {
                 rootPartitionConfig->Mountpoint = "/";
                 rootPartitionConfig->Order = partitionOrder;
 
-                rootPartitionConfig->Subvolumes.push_back({.Subvolume = "/@system", .Mountpoint = "/system"});
-                rootPartitionConfig->Subvolumes.push_back({.Subvolume = "/@revisions", .Mountpoint = "/revisions"});
+                rootPartitionConfig->Subvolumes.push_back({.Subvolume = "/system", .Mountpoint = "/system", .Type = "rw"});
+                rootPartitionConfig->Subvolumes.push_back({.Subvolume = "/revisions", .Mountpoint = "/revisions", .Type = "ro"});
 
                 rootPartitionConfig->Size = partitionSize;
+
+                rootPartitionConfig->Name = partitionName;
                 
                 if (partitioning["scheme"].as<std::string>() == "gpt") {
                     rootPartitionConfig->GPTGUID = "4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709";
@@ -157,6 +161,7 @@ DiskConfiguration::DiskConfiguration(YAML::Node config) {
                     btrfsPartitionConfig->Size = partitionSize;
                     btrfsPartitionConfig->GPTGUID = partitionGPTGUID;
                     btrfsPartitionConfig->MBRType = partitionMBRType;
+                    btrfsPartitionConfig->Name = partitionName;
 
                     // Handling for btrfs subvolume configuration
                     if (partitionProperties["subvolumes"]) {
@@ -171,6 +176,12 @@ DiskConfiguration::DiskConfiguration(YAML::Node config) {
                             if (subvolume["mountpoint"]) {
                                 subvolumeConfig.Mountpoint = subvolume["mountpoint"].as<std::string>();
                             } // Mountpoint optional
+
+                            if (subvolume["type"]) {
+                                subvolumeConfig.Type = subvolume["type"].as<std::string>();
+                            } else {
+                                subvolumeConfig.Type = "default";
+                            } // Type is defaulted to default
 
                             btrfsPartitionConfig->Subvolumes.push_back(subvolumeConfig);
                         }
@@ -189,6 +200,7 @@ DiskConfiguration::DiskConfiguration(YAML::Node config) {
                     partitionConfig->Mountpoint = partitionMountpoint;
                     partitionConfig->GPTGUID = partitionGPTGUID;
                     partitionConfig->MBRType = partitionMBRType;
+                    partitionConfig->Name = partitionName;
                 }
             }
 
@@ -208,9 +220,36 @@ auto DiskConfiguration::ApplyAliases(std::map<std::string, std::string> aliasesM
         for (Disk &disk : m_disks) {
             if (disk.IsAlias && disk.Name == alias) {
                 disk.Name = key;
+                disk.IsAlias = false;
             }
         }
     }
 
     return *this;
+}
+
+auto DiskConfiguration::ContainsPartition(const std::string &name) -> bool {
+    for (const Disk &disk : m_disks) {
+        for (const std::shared_ptr<Partition> &partition : disk.Partitions) {
+            if (partition->Name == name) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+auto DiskConfiguration::GetPartitionsWithFilesystem(const std::string &filesystem) -> std::vector<std::shared_ptr<Partition>> {
+    std::vector<std::shared_ptr<Partition>> matchingPartitions;
+
+    for (const Disk &disk : m_disks) {
+        for (const std::shared_ptr<Partition> &partition : disk.Partitions) {
+            if (partition->Filesystem == filesystem) {
+                matchingPartitions.push_back(partition);
+            }
+        }
+    }
+
+    return matchingPartitions;
 }

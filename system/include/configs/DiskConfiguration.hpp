@@ -20,6 +20,7 @@ namespace configs {
 
             struct Partition {
                 std::string Label;
+                std::string Name;
                 std::string Filesystem;
                 uint32_t MBRType;
                 std::string GPTGUID;
@@ -32,6 +33,7 @@ namespace configs {
             struct BtrFsSubvolume {
                 std::string Subvolume;
                 std::string Mountpoint;
+                std::string Type;
             };
 
             struct BtrfsPartition : public Partition {
@@ -52,6 +54,8 @@ namespace configs {
 
             auto GetDisks() const -> std::vector<Disk>;
             auto ApplyAliases(std::map<std::string, std::string> aliasesMap) -> DiskConfiguration&;
+            auto ContainsPartition(const std::string &name) -> bool;
+            auto GetPartitionsWithFilesystem(const std::string &filesystem) -> std::vector<std::shared_ptr<Partition>>;
 
         private:
             explicit DiskConfiguration(YAML::Node config);
