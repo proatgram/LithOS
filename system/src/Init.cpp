@@ -199,10 +199,11 @@ auto Init::SetupFilesystems() -> void {
             }
 
             // Setup btrfs subvolumes if they exist
-            std::filesystem::create_directories("/tmp/lithos/mnt");
             if (partition->Filesystem == "btrfs") {
+                std::filesystem::create_directories("/tmp/lithos/mnt");
                 rc = mount(partitionPath.c_str(), "/tmp/lithos/mnt", "btrfs", 0, nullptr);
                 if (rc != 0) {
+                    std::filesystem::remove_all("/tmp/lithos");
                     throw std::runtime_error(std::format("Failed to mount partition {} on disk {} to create btrfs subvolumes: {}: {}", partition->Name, disk.Name, std::strerror(-rc), rc));
                 }
 
@@ -212,6 +213,7 @@ auto Init::SetupFilesystems() -> void {
                     if (rc != 0) {
                         rc = umount("/tmp/lithos/mnt");
                         if (rc != 0) {
+                            std::filesystem::remove_all("/tmp/lithos");
                             throw std::runtime_error(std::format("Failed to create btrfs subvolume {} for disk {} on partition {} and failed to unmount.", subvolume.Subvolume, disk.Name, partition->Name));
                         }
                         std::filesystem::remove_all("/tmp/lithos");
@@ -221,10 +223,11 @@ auto Init::SetupFilesystems() -> void {
 
                 rc = umount("/tmp/lithos/mnt");
                 if (rc != 0) {
+                    std::filesystem::remove_all("/tmp/lithos");
                     throw std::runtime_error(std::format("Failed to unmount partition {} on disk {} to create btrfs subvolumes: {}: {}", partition->Name, disk.Name, std::strerror(-rc), rc));
                 }
+                std::filesystem::remove_all("/tmp/lithos");
             }
-            std::filesystem::remove_all("/tmp/lithos");
         }
     }
 

@@ -150,7 +150,25 @@ DiskConfiguration::DiskConfiguration(YAML::Node config) {
 
 
                 partitionConfig = rootPartitionConfig;
-            } else  {
+            } else  if (partitionName == "boot") {
+                partitionConfig = std::make_shared<Partition>();
+
+                partitionConfig->Filesystem = partitionFilesystem;
+                partitionConfig->Label = (partitionLabel.empty() ? "BOOT" : partitionLabel);
+                partitionConfig->Mountpoint = (partitionMountpoint.empty() ? "/boot/efi" : partitionMountpoint);
+
+                partitionConfig->Order = partitionOrder;
+                partitionConfig->Size = partitionSize;
+                partitionConfig->Name = partitionName;
+
+                if (partitioning["scheme"].as<std::string>() == "gpt") {
+                    partitionConfig->GPTGUID = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B";
+                } else if (partitioning["scheme"].as<std::string>() == "mbr") {
+                    partitionConfig->Bootable = true;
+                    partitionConfig->MBRType = 0x83;
+                }
+
+            } else {
                 if (partitionFilesystem == "btrfs") {
                     // Btrfs partition type (special features like subvolumes)
                     std::shared_ptr<BtrfsPartition> btrfsPartitionConfig = std::make_shared<BtrfsPartition>();
