@@ -16,8 +16,9 @@ config:
       - avahi-daemon
 
   files:
-    - path: /etc/sddm.conf.d/kde_settings.conf # For SDDM theming and KDE defaults
-      create: true # If not exists, creates. If exists, replaces
+    /etc/sddm.conf.d/kde_settings.conf: # For SDDM theming and KDE defaults
+      mode: "create"
+      replace: true # Replace if already exists
       permissions: 644 # Only applied if the file is created
       contents: |
         [Autologin]
@@ -37,6 +38,7 @@ config:
         [Users]
         MaximumUid=60513
         MinimumUid=1000
-    - path: /etc/nsswitch.conf # For nss-mdns and printer
+    /etc/nsswitch.conf: # For nss-mdns and printer
+      mode: "insert"
       after: "hosts: " # Allows you to specify a string for this to be added after
       contents: "mdns_minimal [NOTFOUND=return]"

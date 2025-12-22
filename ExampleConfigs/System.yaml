@@ -12,7 +12,7 @@ config:
     keymap: "us"
 
     users:
-      - username: "thetimbrick"
+      thetimbrick:
         fullname: "System Administrator"
         groups: ["wheel"]
         shell: "/usr/bin/zsh"

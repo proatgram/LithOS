@@ -14,6 +14,7 @@ config:
     - networkmanager
 
   files:
-    - file: /etc/sudoers # Allow all users in group wheel to access sudo
+    /etc/sudoers: # Allow all users in group wheel to access sudo
+      mode: "replace"
       replace: "# %wheel ALL=(ALL:ALL) ALL"
       contents: "%wheel ALL=(ALL:ALL) ALL"
