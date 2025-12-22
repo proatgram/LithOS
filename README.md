@@ -1,4 +1,4 @@
-# LithOS - Flexible, deterministic, customizable, and stable Immutable and Transactional Linux
+# LithOS - A Flexible, deterministic, customizable, transactional and stable Immutable Linux Distro
 
 Utilizing btrfs technology with a base of Arch Linux, we are able to guarentee stability while also allowing for a deterministic system every boot that can be easily configured to your liking.
 
