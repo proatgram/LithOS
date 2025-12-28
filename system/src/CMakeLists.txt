@@ -13,6 +13,8 @@ target_link_libraries(system_init
         PkgConfig::libfdisk
         system::configs::DiskConfiguration
         system::configs::SystemConfiguration
+        system::ALPM
 )
 
 add_subdirectory("configs")
+add_subdirectory("ALPM")

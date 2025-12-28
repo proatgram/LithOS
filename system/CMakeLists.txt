@@ -10,6 +10,7 @@ target_link_libraries(system
     PRIVATE
         argparse::argparse
         system::init
+        system::ALPM
 )
 
 add_subdirectory("src")
