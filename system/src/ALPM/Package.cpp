@@ -404,7 +404,3 @@ auto Package::MarkInstall() const -> void {
 auto Package::MarkUninstall() const -> void {
     ALPM::GetCurrentTransaction()->AddPackageOperation(*this, Transaction::PackageOperation::Uninstall);
 }
-
-auto Package::MarkUpdate() const -> void {
-    ALPM::GetCurrentTransaction()->AddPackageOperation(*this, Transaction::PackageOperation::Update);
-}

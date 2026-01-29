@@ -25,6 +25,8 @@ namespace ALPM {
             auto GetPackage(const std::string &name) const -> Package;
             auto Search(const std::string &expression) const -> std::vector<Package>;
 
+            auto GetPackageCache() const -> std::vector<Package>;
+
             auto GetHandle() const -> alpm_db_t*;
 
             /* Transactional functions */

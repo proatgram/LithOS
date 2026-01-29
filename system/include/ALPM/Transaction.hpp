@@ -13,6 +13,9 @@ namespace ALPM {
         public:
             enum class PackageOperation {
                 Install,
+                Upgrade,
+                Reinstall,
+                Downgrade,
                 Uninstall
             };
 

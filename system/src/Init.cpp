@@ -3,7 +3,6 @@
 #include <format>
 
 #include <cstring>
-#include <iostream>
 
 #include <libfdisk/libfdisk.h>
 #include <sys/mount.h>

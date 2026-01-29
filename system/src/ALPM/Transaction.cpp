@@ -1,5 +1,6 @@
 #include "Transaction.hpp"
 #include "ALPM.hpp"
+#include "Utils.hpp"
 
 #include <alpm.h>
 
@@ -53,12 +54,12 @@ auto Transaction::Apply() const -> void {
         switch (operation) {
             case PackageOperation::Install:
                 if (alpm_add_pkg(ALPM::GetHandle(), package.GetHandle()) != 0) {
-                    throw std::runtime_error(std::format("Failed to apply transaction: Couldn't add package to libalpm transaction: {}", ALPM::GetError()));
+                    throw std::runtime_error(std::format("Failed to configure transaction: Couldn't add package to libalpm transaction: {}", ALPM::GetError()));
                 }
                 break;
             case PackageOperation::Uninstall:
                 if (alpm_remove_pkg(ALPM::GetHandle(), package.GetHandle()) != 0) {
-                    throw std::runtime_error(std::format("Failed to apply transaction: Couldn't add package to libalpm transaction: {}", ALPM::GetError()));
+                    throw std::runtime_error(std::format("Failed to configure transaction: Couldn't add package to libalpm transaction: {}", ALPM::GetError()));
                 }
                 break;
         }
@@ -98,33 +99,28 @@ auto Transaction::Apply() const -> void {
         }
     }
 
+    /* Handle transaction */
+
     alpm_list_t *errorList = nullptr;
     if (alpm_trans_prepare(ALPM::GetHandle(), &errorList) != 0) {
         if (errorList) {
-            // TODO: Handle conflicting packages
+            std::vector<MissingDependency> conflictingPackages = Utils::ALPMListToVector<MissingDependency>(errorList);
 
             alpm_list_free(errorList);
             errorList = nullptr;
         }
+        
         throw std::runtime_error(std::format("Failed to prepare transaction: {}", ALPM::GetError()));
     }
 
-    if (errorList) {
-        // TODO: Handle conflicting packages
-
-        alpm_list_free(errorList);
-        errorList = nullptr;
-    }
-
-    
     if (alpm_trans_commit(ALPM::GetHandle(), &errorList) != 0) {
         if (errorList) {
-            // TODO: Handle possible errors
 
             alpm_list_free(errorList);
             errorList = nullptr;
         }
 
+        // TODO: Only throw if user gives no option.
         throw std::runtime_error(std::format("Failed to commit transaction: {}", ALPM::GetError()));
     }
 }

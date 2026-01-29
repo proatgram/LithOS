@@ -29,6 +29,7 @@ target_sources(system_ALPM_Database
 target_link_libraries(system_ALPM_Database
     PUBLIC
         PkgConfig::libalpm
+        system::Utils
 )
 
 add_library(system_ALPM_Transaction)
@@ -46,6 +47,7 @@ target_link_libraries(system_ALPM_Transaction
         PkgConfig::libalpm
         system::ALPM::Package
         system::ALPM::Database
+        system::Utils
 )
 
 add_library(system_ALPM_Package)
@@ -125,4 +127,23 @@ target_link_libraries(system_ALPM_Signature
         system::ALPM
         system::ALPM::Package
         system::ALPM::Database
+)
+
+add_library(system_ALPM_Events)
+add_library(system::ALPM::Events ALIAS system_ALPM_Events)
+
+target_sources(system_ALPM_Events
+    PUBLIC Events.cpp
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS ${CMAKE_SOURCE_DIR}/system/include/ALPM
+    FILES ${CMAKE_SOURCE_DIR}/system/include/ALPM/Events.hpp
+)
+
+target_link_libraries(system_ALPM_Events
+    PUBLIC
+        system::ALPM::Package
+        system::ALPM::Database
+        system::ALPM::Transaction
+        system::ALPM::Dependency
+        PkgConfig::libalpm
 )

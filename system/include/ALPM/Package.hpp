@@ -4,7 +4,6 @@
 #include <vector>
 #include <optional>
 #include <chrono>
-#include <tuple>
 
 #include "Dependency.hpp"
 #include "Database.hpp"
@@ -16,6 +15,8 @@ typedef struct _alpm_pkg_t alpm_pkg_t;
 namespace ALPM {
     class Package {
         public:
+            using UnderlyingType = alpm_pkg_t;
+
             enum class From {
                 File,
                 LocalDB,
@@ -130,7 +131,6 @@ namespace ALPM {
             /* Transactional functions */
             auto MarkInstall() const -> void;
             auto MarkUninstall() const -> void;
-            auto MarkUpdate() const -> void;
 
         private:
             bool m_canFree;

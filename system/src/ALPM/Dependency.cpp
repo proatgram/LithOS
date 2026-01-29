@@ -45,6 +45,10 @@ auto Dependency::GetVersion() const -> std::string {
     return m_alpmDepend->version;
 }
 
+auto Dependency::GetHandle() const -> Dependency::UnderlyingType* {
+    return m_alpmDepend;
+}
+
 MissingDependency::MissingDependency(alpm_depmissing_t *missingDependency) :
     m_alpmDepMissing(missingDependency) {}
 
@@ -60,6 +64,10 @@ auto MissingDependency::GetTargetName() const -> std::string {
     return m_alpmDepMissing->target;
 }
 
+auto MissingDependency::GetHandle() const -> MissingDependency::UnderlyingType* {
+    return m_alpmDepMissing;
+}
+
 Conflict::Conflict(alpm_conflict_t *conflict) :
     m_alpmConflict(conflict) {}
 
@@ -69,6 +77,10 @@ auto Conflict::GetPackages() const -> std::tuple<ALPM::Package, ALPM::Package> {
 
 auto Conflict::GetReason() const -> Dependency {
     return m_alpmConflict->reason;
+}
+
+auto Conflict::GetHandle() const -> Conflict::UnderlyingType* {
+    return m_alpmConflict;
 }
 
 FileConflict::FileConflict(alpm_fileconflict_t *fileConflict) :
@@ -95,4 +107,8 @@ auto FileConflict::GetConflictType() const -> ConflictType {
         default:
             throw std::runtime_error("Unknown libalpm file conflict type.");
     }
+}
+
+auto FileConflict::GetHandle() const -> FileConflict::UnderlyingType* {
+    return m_alpmFileConflict;
 }

@@ -1,6 +1,7 @@
 #include "Database.hpp"
 #include "ALPM.hpp"
 #include "Package.hpp"
+#include "Utils.hpp"
 
 #include "alpm.h"
 
@@ -81,6 +82,11 @@ auto Database::Search(const std::string &expression) const -> std::vector<Packag
     }
 
     return results;
+}
+
+auto Database::GetPackageCache() const -> std::vector<Package> {
+    alpm_list_t *pkgCache = alpm_db_get_pkgcache(m_alpmdb);
+    return Utils::ALPMListToVector<Package>(pkgCache);
 }
 
 auto Database::GetHandle() const -> alpm_db_t* {

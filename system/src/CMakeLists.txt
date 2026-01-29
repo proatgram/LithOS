@@ -16,5 +16,15 @@ target_link_libraries(system_init
         system::ALPM
 )
 
+add_library(system_utils INTERFACE)
+add_library(system::Utils ALIAS system_utils)
+
+target_sources(system_utils
+    INTERFACE
+        FILE_SET HEADERS
+        BASE_DIRS ${CMAKE_SOURCE_DIR}/system/include
+        FILES ${CMAKE_SOURCE_DIR}/system/include/Utils.hpp
+)
+
 add_subdirectory("configs")
 add_subdirectory("ALPM")
