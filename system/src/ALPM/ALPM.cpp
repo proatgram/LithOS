@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <format>
 
+#include "Callbacks.hpp"
+
 alpm_handle_t *ALPM::ALPM::s_alpmHandle = nullptr;
 std::shared_ptr<ALPM::Transaction> ALPM::ALPM::s_currentTransaction = {};
 ALPM::Config ALPM::ALPM::s_config = Config();
@@ -31,6 +33,8 @@ auto ALPM::ALPM::Initialize(const std::filesystem::path &root) -> bool {
     // Initializing database results in libalpm_register_syncdb being called
     // for all of the databases defined in pacman.conf
     Database::Initialize();
+
+    Callback::Register<QuestionCallback>(1);
 
     return true;
 }
