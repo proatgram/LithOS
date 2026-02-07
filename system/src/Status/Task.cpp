@@ -1,7 +1,5 @@
 #include "Task.hpp"
 
-using namespace Status;
-
 Task::Task(Task::Private, const std::string &name, const std::string &description) :
     m_name(name), m_description(description)
 {
@@ -33,12 +31,20 @@ auto Task::GetDescription() const -> std::string {
 }
 
 auto Task::TickProgress(float amount) -> void {
+    if (IsFinished()) {
+        return;
+    }
+
     m_progress += amount;
 
     m_callbackFunction(m_progress);
 }
 
 auto Task::SetProgress(float progress) -> void {
+    if (IsFinished()) {
+        return;
+    }
+
     m_progress = progress;
 
     m_callbackFunction(m_progress);
@@ -46,13 +52,15 @@ auto Task::SetProgress(float progress) -> void {
 
 auto Task::Finish() -> void {
     SetProgress(100.0f);
-    m_callbackFunction(m_progress);
-    
+}
+
+auto Task::IsFinished() const -> bool {
+    return m_progress >= 100.0f;
 }
 
 auto Task::AddProgressCallback(const CallbackFunction_t callbackFunction) -> std::shared_ptr<Task> {
     m_callbackFunction = callbackFunction;
-    m_callbackFunction(m_progress);
+    //m_callbackFunction(m_progress);
 
     return shared_from_this();
 }

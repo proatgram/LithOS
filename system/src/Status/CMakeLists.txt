@@ -11,6 +11,7 @@ target_sources(system_status_Status
 target_link_libraries(system_status_Status
     PUBLIC
         indicators::indicators
+        system::Task
 )
 
 add_library(system_status_Task)
