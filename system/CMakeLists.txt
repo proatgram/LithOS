@@ -11,6 +11,7 @@ target_link_libraries(system
         argparse::argparse
         system::init
         system::ALPM
+        system::Event
 )
 
 add_subdirectory("src")

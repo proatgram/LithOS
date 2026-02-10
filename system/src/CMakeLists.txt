@@ -29,3 +29,4 @@ target_sources(system_utils
 add_subdirectory("configs")
 add_subdirectory("ALPM")
 add_subdirectory("Status")
+add_subdirectory("Event")
