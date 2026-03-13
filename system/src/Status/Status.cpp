@@ -49,6 +49,10 @@ auto Status::Status::AddTask(const std::shared_ptr<Task> &task) -> std::shared_p
         }
     });
 
+    task->AddDescriptionCallback([&bar](const std::string &description) -> void {
+        bar.set_option(indicators::option::PostfixText{description});
+    });
+
     return shared_from_this();
 }
 

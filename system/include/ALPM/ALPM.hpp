@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include <memory>
+#include <optional>
 
 #include "Transaction.hpp"
 #include "Config.hpp"
@@ -28,6 +29,8 @@ namespace ALPM {
             static auto GetLocalDatabase() -> Database;
 
             static auto GetSyncDatabases() -> std::vector<Database>;
+
+            static auto GetSyncDatabase(const std::string &name) -> std::optional<Database>;
 
             static auto GetConfig() -> Config;
 

@@ -46,7 +46,6 @@ namespace ALPM {
             };
 
             static auto Create() -> std::shared_ptr<Transaction>;
-            static auto ApplyAll() -> void;
 
             Transaction(Private);
             ~Transaction() = default;

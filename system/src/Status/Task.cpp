@@ -6,8 +6,17 @@ Task::Task(Task::Private, const std::string &name, const std::string &descriptio
     
 }
 
-auto Task::GetOrCreate(const std::string &name, const std::string &descrioption) -> std::shared_ptr<Task> {
-    return std::make_shared<Task>(Private(), name, descrioption);
+auto Task::GetOrCreate(const std::string &name, const std::string &description) -> std::shared_ptr<Task> {
+    for (const std::shared_ptr<Task> &task : s_instances) {
+        if (task->GetName() == name) {
+            return task;
+        }
+    }
+
+    std::shared_ptr<Task> task = std::make_shared<Task>(Private(), name, description);
+    s_instances.insert(task);
+
+    return task;
 }
 
 auto Task::SetName(const std::string &name) -> std::shared_ptr<Task> {
@@ -22,6 +31,7 @@ auto Task::GetName() const -> std::string {
 
 auto Task::SetDescription(const std::string &description) -> std::shared_ptr<Task> {
     m_description = description;
+    m_descriptionCallbackFunction(m_description);
 
     return shared_from_this();
 }
@@ -37,7 +47,7 @@ auto Task::TickProgress(float amount) -> void {
 
     m_progress += amount;
 
-    m_callbackFunction(m_progress);
+    m_progressCallbackFunction(m_progress);
 }
 
 auto Task::SetProgress(float progress) -> void {
@@ -47,20 +57,27 @@ auto Task::SetProgress(float progress) -> void {
 
     m_progress = progress;
 
-    m_callbackFunction(m_progress);
+    m_progressCallbackFunction(m_progress);
 }
 
-auto Task::Finish() -> void {
+auto Task::Finish() -> std::shared_ptr<Task> {
     SetProgress(100.0f);
+
+    return shared_from_this();
 }
 
 auto Task::IsFinished() const -> bool {
     return m_progress >= 100.0f;
 }
 
-auto Task::AddProgressCallback(const CallbackFunction_t callbackFunction) -> std::shared_ptr<Task> {
-    m_callbackFunction = callbackFunction;
-    //m_callbackFunction(m_progress);
+auto Task::AddProgressCallback(const ProgressCallbackFunction_t callbackFunction) -> std::shared_ptr<Task> {
+    m_progressCallbackFunction = callbackFunction;
+
+    return shared_from_this();
+}
+
+auto Task::AddDescriptionCallback(const DescriptionCallbackFunction_t callbackFunction) -> std::shared_ptr<Task> {
+    m_descriptionCallbackFunction = callbackFunction;
 
     return shared_from_this();
 }

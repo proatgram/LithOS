@@ -8,4 +8,6 @@ auto main(int argc, char **argv) -> int {
 
     ALPM::ALPM::Initialize();
 
+    ALPM::ALPM::GetCurrentTransaction()->AddSystemUpgradeOperation();
+    ALPM::ALPM::GetCurrentTransaction()->Apply();
 }

@@ -1,6 +1,8 @@
 #include "ALPM.hpp"
 
-#include "alpm.h"
+#include "Events.hpp"
+
+#include <alpm.h>
 
 #include <stdexcept>
 #include <format>
@@ -24,6 +26,9 @@ auto ALPM::ALPM::Initialize(const std::filesystem::path &root) -> bool {
     if (!s_alpmHandle) {
         throw std::runtime_error(std::format("Failed to allocate libalpm handle: {}", alpm_strerror(err)));
     }
+
+    // Register C++ libalpm events
+    Events::RegisterEvents();
 
     // Load global configuration file
     s_config.LoadFile(configPath);
@@ -99,6 +104,19 @@ auto ALPM::ALPM::GetSyncDatabases() -> std::vector<Database> {
     }
 
     return databases;
+}
+
+auto ALPM::ALPM::GetSyncDatabase(const std::string &name) -> std::optional<Database> {
+    Initialize();
+    alpm_list_t *list = alpm_get_syncdbs(s_alpmHandle);
+    for (size_t i = 0; i < alpm_list_count(list); i++) {
+        Database db = Database(static_cast<alpm_db_t*>(alpm_list_nth(list, i)->data));
+        if (db.GetName() == name) {
+            return db;
+        }
+    }
+
+    return {};
 }
 
 auto ALPM::ALPM::GetConfig() -> Config {
