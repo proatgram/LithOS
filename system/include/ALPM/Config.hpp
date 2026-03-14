@@ -31,6 +31,7 @@ namespace ALPM {
     class Config {
         public:
             class Section {
+                friend class Config;
                 public:
                     class Value {
                         public:
@@ -92,8 +93,8 @@ namespace ALPM {
                             inline auto As() const -> T {
                                 auto value = T{};
                                 auto [ptr, err] = std::from_chars(m_value.data(), m_value.data() + m_value.size(), value);
-                                if (err == std::errc{}) {
-                                    throw std::system_error(err, std::format("Failed to convert value to {}", typeid(T).name()));
+                                if (err != std::errc{}) {
+                                    throw std::system_error(std::make_error_code(err), std::format("Failed to convert value to {}", typeid(T).name()));
                                 }
 
                                 return value;
@@ -203,9 +204,14 @@ namespace ALPM {
 
                     auto GetName() const -> std::string;
 
-                    auto GetOptions() const -> std::map<std::string, Value>;
-                    auto GetOptions() -> std::map<std::string, Value>&;
+                    auto GetOptions() const -> std::multimap<std::string, Value>;
+                    auto GetOptions() -> std::multimap<std::string, Value>&;
+                    auto GetOptions(const std::string &option) -> std::vector<std::reference_wrapper<Value>>;
+                    auto GetOptions(const std::string &option) const -> std::vector<Value>;
 
+                    // Use of these getters with a key that has multiple values can return
+                    // any of the values for the key. For a key that has multiple values, use
+                    // `GetOptions(key)`.
                     auto GetOption(const std::string &option) const -> std::optional<const Value>;
                     auto GetOption(const std::string &option) -> Value&;
 
@@ -214,7 +220,7 @@ namespace ALPM {
                 private:
 
                     std::string m_name;
-                    std::map<std::string, Value> m_options;
+                    std::multimap<std::string, Value> m_options;
             };
 
             explicit Config(const std::filesystem::path &configFile);

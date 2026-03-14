@@ -25,32 +25,37 @@ namespace ALPM {
 
             enum class OperationFlags {
                 /* libalpm flags */
-                NoDependencyChecks = 1 << 0,
-                NoSaveBackups = 1 << 2,
-                NoDepVersionChecking = 1 << 3,
-                RemoveDependingPackages = 1 << 4,
-                Recursive = 1 << 5,
-                DatabaseOnly = 1 << 6,
-                NoHooks = 1 << 7,
-                AllDependencies = 1 << 8,
-                DownloadOnly = 1 << 9,
-                NoScriptlets = 1 << 10,
-                NoConflicts = 1 << 11,
-                AsNeeded = 1 << 13,
-                AllExplicit = 1 << 14,
-                OnlyRemoveUnneeded = 1 << 15,
-                RecursiveAll = 1 << 16,
-                NoLock = 1 << 17
+                NoDependencyChecks,
+                NoSaveBackups,
+                NoDepVersionChecking,
+                RemoveDependingPackages,
+                Recursive,
+                DatabaseOnly,
+                NoHooks,
+                AllDependencies,
+                DownloadOnly,
+                NoScriptlets,
+                NoConflicts,
+                AsNeeded,
+                AllExplicit,
+                OnlyRemoveUnneeded,
+                RecursiveAll,
+                NoLock,
 
                 /* Wrapper flags */
+                ForceDatabase
             };
 
             static auto Create() -> std::shared_ptr<Transaction>;
 
             Transaction(Private);
-            ~Transaction() = default;
+            ~Transaction();
 
-            auto SetFlags(const std::bitset<32> &transactionFlags);
+            template <typename ...Args>
+            inline auto SetFlags(OperationFlags flag, Args... flags) -> void {
+                m_transactionFlags.set(static_cast<size_t>(flag));
+                (m_transactionFlags.set(static_cast<size_t>(flags)), ...);
+            }
             auto AddPackageOperation(const Package &package, PackageOperation operation) -> void;
             auto AddDatabaseOperation(const Database &database, DatabaseOperation operation) -> void;
             auto AddSystemUpgradeOperation() -> void;

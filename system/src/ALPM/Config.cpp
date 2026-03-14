@@ -20,28 +20,46 @@ auto Config::Section::GetName() const -> std::string {
     return m_name;
 }
 
-auto Config::Section::GetOptions() const -> std::map<std::string, Value> {
+auto Config::Section::GetOptions() const -> std::multimap<std::string, Value> {
     return m_options;
 }
 
-auto Config::Section::GetOptions() -> std::map<std::string, Value>& {
+auto Config::Section::GetOptions() -> std::multimap<std::string, Value>& {
     return m_options;
+}
+
+auto Config::Section::GetOptions(const std::string &option) -> std::vector<std::reference_wrapper<Value>> {
+    std::vector<std::reference_wrapper<Value>> options{};
+    for (auto [it, end] = m_options.equal_range(option); it != end; it++) {
+        options.emplace_back(it->second);
+    }
+
+    return options;
+}
+
+auto Config::Section::GetOptions(const std::string &option) const -> std::vector<Value> {
+    std::vector<Value> options;
+    for (auto [it, end] = m_options.equal_range(option); it != end; it++) {
+        options.push_back(it->second);
+    }
+
+    return options;
 }
 
 auto Config::Section::GetOption(const std::string &name) const -> std::optional<const Value> {
     if (m_options.contains(name)) {
-        return std::make_optional<const Value>(m_options.at(name));
+        return std::make_optional<const Value>(m_options.find(name)->second);
     }
     return {};
 }
 
 auto Config::Section::GetOption(const std::string &name) -> Value& {
     if (m_options.contains(name)) {
-        return m_options.at(name);
+        return m_options.find(name)->second;
     }
 
     m_options.emplace(name, Value(name));
-    return m_options.at(name);
+    return m_options.find(name)->second;
 }
 
 auto Config::Section::HasOption(const std::string &option) const -> bool {
@@ -90,7 +108,22 @@ auto Config::LoadFile(const std::filesystem::path &configFile) -> void {
             std::string value = line.substr(line.find_first_of('=') + 1);
             value = value.substr(value.find_first_not_of(' ') == value.npos ? 0 : value.find_first_not_of(' '));
 
-            (*currentSection)[key] = value;
+            // Handle an include in the config
+            if (key == "Include") {
+                std::fstream include(value, std::fstream::in);
+                std::string includeLine{};
+                while (std::getline(include, includeLine)) {
+                    std::string includeKey = includeLine.substr(0, includeLine.find_first_of('='));
+                    includeKey = includeKey.substr(0, includeKey.find_last_not_of(' ') + 1);
+
+                    std::string includeValue = includeLine.substr(includeLine.find_first_of('=') + 1);
+                    includeValue = includeValue.substr(includeValue.find_first_not_of(' ') == includeValue.npos ? 0 : includeValue.find_first_not_of(' '));
+
+                    currentSection->m_options.insert(std::make_pair(includeKey, Section::Value(includeValue)));
+                }
+            } else {
+                currentSection->m_options.insert(std::make_pair(key, Section::Value(value)));
+            }
         }
     }
 }

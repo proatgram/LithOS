@@ -27,13 +27,18 @@ namespace ALPM {
 
             auto GetPackageCache() const -> std::vector<Package>;
 
+            auto GetServers() const -> std::vector<std::string>;
+            auto SetServers(const std::vector<std::string> &urls) -> bool;
+            auto AddServer(const std::string &url) -> bool;
+            auto RemoveServer(const std::string &url) -> int;
+
             auto GetHandle() const -> alpm_db_t*;
 
             /* Transactional functions */
             auto MarkUpdate() const -> void;
 
         private:
-            static auto RegisterSyncDatabase(const std::string &treename, const std::bitset<32> &siglevelFlags) -> bool;
+            static auto RegisterSyncDatabase(const std::string &treename, const std::bitset<32> &siglevelFlags, const std::vector<std::string> &servers = {}) -> bool;
 
             alpm_db_t *m_alpmdb;
 

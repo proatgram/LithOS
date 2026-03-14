@@ -33,6 +33,10 @@ auto ALPM::ALPM::Initialize(const std::filesystem::path &root) -> bool {
     // Load global configuration file
     s_config.LoadFile(configPath);
 
+    if (s_config.GetSection("options").HasOption("ParallelDownloads")) {
+        alpm_option_set_parallel_downloads(s_alpmHandle, s_config.GetSection("options").GetOption("ParallelDownloads").As<int>());
+    }
+
     // Initializing database results in libalpm_register_syncdb being called
     // for all of the databases defined in pacman.conf
     Database::Initialize();

@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <format>
+#include <regex>
 
 using namespace ALPM;
 
@@ -21,26 +22,33 @@ auto Database::Initialize() -> void {
         if (section.GetName() == "options") {
             continue;
         }
+        std::vector<std::string> servers;
+        if (section.HasOption("Server")) {
+            for (const Config::Section::Value &server : section.GetOptions("Server")) {
+                std::string serverString = server.As<std::string>();
+                serverString = std::regex_replace(serverString, std::regex("\\$repo"), section.GetName());
+                serverString = std::regex_replace(serverString, std::regex("\\$arch"), Utils::GetSystemArchitecture());
+                servers.push_back(serverString);
+            }
+        }
+        
+        if (!RegisterSyncDatabase(section.GetName(), (section.HasOption("SigLevel") ? section.GetOption("SigLevel")->As<Signature::Level>() : defaultSigLevel), servers)) {
+            throw std::runtime_error(std::format("Failed to register sync database {}: {}", section.GetName(), ALPM::GetError()));
 
-        if (section.HasOption("SigLevel")) {
-            if (!RegisterSyncDatabase(section.GetName(), section.GetOption("SigLevel")->As<Signature::Level>())) {
-                throw std::runtime_error(std::format("Failed to register sync database {}: {}", section.GetName(), ALPM::GetError()));
-            }
-        } else {
-            if (!RegisterSyncDatabase(section.GetName(), defaultSigLevel)) {
-                throw std::runtime_error(std::format("Failed to register sync database {}: {}", section.GetName(), ALPM::GetError()));
-            }
         }
     }
 }
 
-auto Database::RegisterSyncDatabase(const std::string &treename, const std::bitset<32> &siglevelFlags) -> bool {
+auto Database::RegisterSyncDatabase(const std::string &treename, const std::bitset<32> &siglevelFlags, const std::vector<std::string> &servers) -> bool {
     int sigLevel = 0;
 
     // Since we have the same enum definition, just different names, it can just be used like so.
-    if (alpm_register_syncdb(ALPM::GetHandle(), treename.c_str(), static_cast<alpm_siglevel_t>(siglevelFlags.to_ulong())) == nullptr) {
+    Database db(alpm_register_syncdb(ALPM::GetHandle(), treename.c_str(), static_cast<alpm_siglevel_t>(siglevelFlags.to_ulong())));
+    if (db.GetHandle() == nullptr) {
         return false;
     }
+
+    db.SetServers(servers);
 
     return true;
 }
@@ -87,6 +95,24 @@ auto Database::Search(const std::string &expression) const -> std::vector<Packag
 auto Database::GetPackageCache() const -> std::vector<Package> {
     alpm_list_t *pkgCache = alpm_db_get_pkgcache(m_alpmdb);
     return Utils::ALPMListToVector<Package>(pkgCache);
+}
+
+auto Database::GetServers() const -> std::vector<std::string> {
+    return Utils::ALPMListToVector<std::string>(alpm_db_get_servers(m_alpmdb));
+}
+
+auto Database::SetServers(const std::vector<std::string> &urls) -> bool {
+    alpm_list_t *list = Utils::VectorToALPMList(urls);
+    return alpm_db_set_servers(m_alpmdb, list);
+    FREELIST(list);
+}
+
+auto Database::AddServer(const std::string &url) -> bool {
+    return alpm_db_add_server(m_alpmdb, url.c_str());
+}
+
+auto Database::RemoveServer(const std::string &url) -> int {
+    return alpm_db_remove_server(m_alpmdb, url.c_str());
 }
 
 auto Database::GetHandle() const -> alpm_db_t* {

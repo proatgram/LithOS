@@ -16,7 +16,9 @@ auto Events::RegisterEvents() -> void {
                 // TODO: Add the package download task to the progress system
                 auto task = Task::GetOrCreate(event.Filename, std::format("Downloading {}", event.Filename)) ;
                 alpm_download_event_init_t *init = static_cast<alpm_download_event_init_t*>(event.Context);
-                task->SetContext(static_cast<bool>(init->optional));
+                if (init) {
+                    task->SetContext(static_cast<bool>(init->optional));
+                }
                 Status::Status::GetOrCreate()->AddTask(task);
                 
                 break;
@@ -26,7 +28,7 @@ auto Events::RegisterEvents() -> void {
                 // is for specifically download progress.
                 float progress{};
                 alpm_download_event_progress_t *prog = static_cast<alpm_download_event_progress_t*>(event.Data);
-                progress = (float)prog->downloaded / (float)prog->total;
+                progress = ((float)prog->downloaded / (float)prog->total) * 100.0f;
                 Task::GetOrCreate(event.Filename)->SetProgress(progress);
 
                 break;
@@ -48,6 +50,6 @@ auto Events::RegisterEvents() -> void {
         }
     });
     alpm_option_set_dlcb(ALPM::GetHandle(), [](void *ctx, const char *filename, alpm_download_event_type_t event, void *data) -> void {
-            Event::Event::Emit<DownloadEvent>({.Context = ctx, .Filename = filename, .Type = static_cast<DownloadEvent::DownloadType>(event), .Data = data});
+            Event::Event::Emit<DownloadEvent>({.Context = ctx, .Filename = filename, .Type = static_cast<DownloadEvent::DownloadType>(std::to_underlying(event)), .Data = data});
     }, nullptr);
 }

@@ -11,6 +11,10 @@ using namespace ALPM;
 
 Transaction::Transaction(Transaction::Private) {}
 
+Transaction::~Transaction() {
+    alpm_trans_release(ALPM::GetHandle());
+}
+
 auto Transaction::Create() -> std::shared_ptr<Transaction> {
     return std::make_shared<Transaction>(Private());
 }
@@ -46,6 +50,27 @@ auto Transaction::GetDatabaseUpdates() const -> std::vector<Database> {
 }
 
 auto Transaction::Apply() const -> void {
+    if (!GetDatabaseUpdates().empty()) {
+        alpm_list_t *list = nullptr;
+        for (const Database &database : GetDatabaseUpdates()) {
+            // Handle first list entry
+            list = alpm_list_add(list, database.GetHandle());
+        }
+
+        // TODO: Allow modifying force flag
+        if (alpm_db_update(ALPM::GetHandle(), list, m_transactionFlags.test(std::to_underlying(OperationFlags::ForceDatabase))) != 0) {
+            alpm_list_free(list);
+
+            throw std::runtime_error(std::format("Failed to apply transaction: Could not add database updates to libalpm transaction: {}", ALPM::GetError()));
+        }
+
+        // Apparently a db operation isn't part of the transaction, so if
+        // it's the only operation, then return to prevent transaction errors.
+        if (m_packageOperations.empty() && !m_systemUpgrade) {
+            return;
+        }
+    }
+
     if (alpm_trans_init(ALPM::GetHandle(), static_cast<alpm_transflag_t>(m_transactionFlags.to_ulong() & 0b111111111111111111)) != 0) {
         throw std::runtime_error(std::format("Failed to apply transaction: Failed to initialize libalpm transaction: {}", ALPM::GetError()));
     }
@@ -66,33 +91,6 @@ auto Transaction::Apply() const -> void {
     }
 
     
-    if (!GetDatabaseUpdates().empty()) {
-        alpm_list_t *list = new alpm_list_t;
-        list->prev = nullptr;
-        alpm_list_t *dbList = list;
-        for (const Database &database : GetDatabaseUpdates()) {
-            // Handle first list entry
-            if (dbList == list) {
-                dbList->data = database.GetHandle();
-                continue;
-            }
-
-            // Sets up new entry in list
-            dbList->next = new alpm_list_t;
-            dbList = dbList->next;
-
-            dbList->data = database.GetHandle();
-        }
-
-        // TODO: Allow modifying force flag
-        if (alpm_db_update(ALPM::GetHandle(), list, false) != 0) {
-            alpm_list_free(list);
-            dbList = nullptr;
-
-            throw std::runtime_error(std::format("Failed to apply transaction: Could not add database updates to libalpm transaction: {}", ALPM::GetError()));
-        }
-    }
-
     if (m_systemUpgrade) {
         if (alpm_sync_sysupgrade(ALPM::GetHandle(), false) != 0) {
             throw std::runtime_error(std::format("Failed to apply transaction: Could not add packages to upgrade: {}", ALPM::GetError()));
@@ -102,7 +100,7 @@ auto Transaction::Apply() const -> void {
     /* Handle transaction */
 
     alpm_list_t *errorList = nullptr;
-    if (alpm_trans_prepare(ALPM::GetHandle(), &errorList) != 0) {
+    if (alpm_trans_prepare(ALPM::GetHandle(), &errorList) == -1) {
         if (errorList) {
             std::vector<MissingDependency> conflictingPackages = Utils::ALPMListToVector<MissingDependency>(errorList);
 

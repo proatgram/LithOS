@@ -4,6 +4,9 @@
 #include <string>
 #include <cmath>
 #include <vector>
+#include <string>
+#include <cstring>
+#include <sys/utsname.h>
 
 #include <alpm.h>
 
@@ -40,10 +43,20 @@ namespace Utils {
 
     template <typename T>
     requires ALPMListConvertible<T>
-    auto ALPMListToVector(const alpm_list_t* list) -> std::vector<T> {
+    auto ALPMListToVector(const alpm_list_t *list) -> std::vector<T> {
         std::vector<T> vec;
         for (const alpm_list_t *i = list; i != nullptr; i = i->next) {
             vec.emplace_back(reinterpret_cast<T::UnderlyingType*>(i->data));
+        }
+
+        return vec;
+    }
+    template <typename T>
+    requires std::same_as<T, std::string>
+    auto ALPMListToVector(const alpm_list_t *list) -> std::vector<T> {
+        std::vector<std::string> vec;
+        for (const alpm_list_t *i = list; i != nullptr; i = i->next) {
+            vec.push_back(std::string(reinterpret_cast<char*>(i->data)));
         }
 
         return vec;
@@ -58,5 +71,39 @@ namespace Utils {
         }
 
         return list;
+    }
+    template <typename T>
+    requires std::same_as<T, std::string>
+    auto VectorToALPMList(const std::vector<T> &vector) -> alpm_list_t* {
+        alpm_list_t *list = nullptr;
+        for (const std::string &element : vector) {
+            char *data = new char[element.size()];
+            std::strcpy(data, element.c_str());
+            list = alpm_list_add(list, data);
+        }
+
+        return list;
+    }
+    inline auto GetSystemArchitecture() -> std::string {
+        struct utsname buffer;
+        
+        if (uname(&buffer) != 0) {
+            return "unknown";
+        }
+        
+        std::string machine = buffer.machine;
+        
+        // Normalize common architecture names
+        if (machine == "x86_64" || machine == "amd64") {
+            return "x86_64";
+        } else if (machine == "aarch64" || machine == "arm64") {
+            return "aarch64";
+        } else if (machine == "i386" || machine == "i686") {
+            return "i386";
+        } else if (machine.find("arm") != std::string::npos) {
+            return "arm";
+        }
+        
+        return machine;
     }
 }  // namespace Utils
