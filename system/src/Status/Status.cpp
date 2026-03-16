@@ -23,6 +23,7 @@ Status::Status::~Status() {
 auto Status::Status::AddTask(const std::shared_ptr<Task> &task) -> std::shared_ptr<Status> {
     m_tasks.push_back(task);
     m_progressBars.emplace_back(
+        option::PrefixText{task->GetName() + " "},
         option::PostfixText{task->GetDescription()},
         option::ShowElapsedTime{true},
         option::ShowPercentage{true},
@@ -33,7 +34,6 @@ auto Status::Status::AddTask(const std::shared_ptr<Task> &task) -> std::shared_p
         option::Remainder{" "},
         option::End{"]"},
         option::ForegroundColor{Color::white},
-        option::ShowRemainingTime{true},
         option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}
     );
     ProgressBar &bar = m_progressBars.back();

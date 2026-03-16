@@ -25,22 +25,22 @@ namespace ALPM {
 
             enum class OperationFlags {
                 /* libalpm flags */
-                NoDependencyChecks,
-                NoSaveBackups,
-                NoDepVersionChecking,
-                RemoveDependingPackages,
-                Recursive,
-                DatabaseOnly,
-                NoHooks,
-                AllDependencies,
-                DownloadOnly,
-                NoScriptlets,
-                NoConflicts,
-                AsNeeded,
-                AllExplicit,
-                OnlyRemoveUnneeded,
-                RecursiveAll,
-                NoLock,
+                NoDependencyChecks = 0,
+                NoSaveBackups = 2,
+                NoDepVersionChecking = 3,
+                RemoveDependingPackages = 4,
+                Recursive = 5,
+                DatabaseOnly = 6,
+                NoHooks = 7,
+                AllDependencies = 8,
+                DownloadOnly = 9,
+                NoScriptlets = 10,
+                NoConflicts = 11,
+                AsNeeded = 13,
+                AllExplicit = 14,
+                OnlyRemoveUnneeded = 15,
+                RecursiveAll = 16,
+                NoLock = 17,
 
                 /* Wrapper flags */
                 ForceDatabase

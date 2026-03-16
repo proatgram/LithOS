@@ -8,10 +8,11 @@ auto main(int argc, char **argv) -> int {
 
     ALPM::ALPM::Initialize();
 
+    /*
     for (const ALPM::Database &db : ALPM::ALPM::GetSyncDatabases()) {
         db.MarkUpdate();
     }
+    */
     ALPM::ALPM::GetCurrentTransaction()->AddSystemUpgradeOperation();
-    ALPM::ALPM::GetCurrentTransaction()->SetFlags(ALPM::Transaction::OperationFlags::ForceDatabase);
     ALPM::ALPM::GetCurrentTransaction()->Apply();
 }

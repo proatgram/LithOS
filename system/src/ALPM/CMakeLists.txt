@@ -148,5 +148,6 @@ target_link_libraries(system_ALPM_Events
         system::ALPM
         system::ALPM::Package
         system::ALPM::Database
+        system::Utils
 )
 
