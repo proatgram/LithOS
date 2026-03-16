@@ -1,6 +1,8 @@
 #include "ALPM.hpp"
 
 #include "Events.hpp"
+#include "Event.hpp"
+#include "PosixSignals.hpp"
 
 #include <alpm.h>
 
@@ -15,6 +17,15 @@ auto ALPM::ALPM::Initialize(const std::filesystem::path &root) -> bool {
     if (s_alpmHandle) {
         return false;
     }
+
+    Event::Event::RegisterCallback<POSIXSignals::SigInt>([](const POSIXSignals::SigInt &signal) -> void {
+        if (s_currentTransaction) {
+            s_currentTransaction->Interrupt();
+            alpm_trans_release(s_alpmHandle);
+        }
+
+        alpm_release(s_alpmHandle);
+    });
 
     alpm_errno_t err;
 

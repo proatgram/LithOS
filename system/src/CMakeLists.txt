@@ -26,6 +26,21 @@ target_sources(system_utils
         FILES ${CMAKE_SOURCE_DIR}/system/include/Utils.hpp
 )
 
+add_library(system_posixsignals)
+add_library(system::PosixSignals ALIAS system_posixsignals)
+
+target_sources(system_posixsignals
+    PUBLIC PosixSignals.cpp
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS ${CMAKE_SOURCE_DIR}/system/include
+    FILES ${CMAKE_SOURCE_DIR}/system/include/PosixSignals.hpp
+)
+
+target_link_libraries(system_posixsignals
+    PUBLIC
+        system::Event
+)
+
 add_subdirectory("configs")
 add_subdirectory("ALPM")
 add_subdirectory("Status")

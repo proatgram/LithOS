@@ -1,4 +1,6 @@
 #include "Status.hpp"
+#include "Event.hpp"
+#include "PosixSignals.hpp"
 
 using namespace indicators;
 
@@ -14,10 +16,14 @@ auto Status::Status::GetOrCreate() -> std::shared_ptr<Status> {
 // or else it will look weird
 Status::Status::Status(Status::Status::Private) {
     show_console_cursor(false);
+    m_sigintCallbackID = Event::Event::RegisterCallback<POSIXSignals::SigInt>([](const POSIXSignals::SigInt &signal) -> void {
+        show_console_cursor(false);
+    });
 }
 
 Status::Status::~Status() {
     show_console_cursor(true);
+    Event::Event::UnregisterCallback(m_sigintCallbackID);
 }
 
 auto Status::Status::AddTask(const std::shared_ptr<Task> &task) -> std::shared_ptr<Status> {

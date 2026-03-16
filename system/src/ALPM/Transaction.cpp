@@ -6,6 +6,7 @@
 
 #include <ranges>
 #include <format>
+#include <iostream>
 
 using namespace ALPM;
 
@@ -63,12 +64,6 @@ auto Transaction::Apply() const -> void {
 
             throw std::runtime_error(std::format("Failed to apply transaction: Could not add database updates to libalpm transaction: {}", ALPM::GetError()));
         }
-
-        // Apparently a db operation isn't part of the transaction, so if
-        // it's the only operation, then return to prevent transaction errors.
-        if (m_packageOperations.empty() && !m_systemUpgrade) {
-            return;
-        }
     }
 
     if (alpm_trans_init(ALPM::GetHandle(), static_cast<alpm_transflag_t>(m_transactionFlags.to_ulong() & 0b111111111111111111)) != 0) {
@@ -97,6 +92,13 @@ auto Transaction::Apply() const -> void {
         }
     }
 
+    // If there is nothing to do, return.
+    if (m_packageOperations.empty() && alpm_list_count(alpm_trans_get_add(ALPM::GetHandle())) == 0) {
+        std::cout << "There is nothing to do." << std::endl;
+        return;
+    }
+
+
     /* Handle transaction */
 
     alpm_list_t *errorList = nullptr;
@@ -121,4 +123,8 @@ auto Transaction::Apply() const -> void {
         // TODO: Only throw if user gives no option.
         throw std::runtime_error(std::format("Failed to commit transaction: {}", ALPM::GetError()));
     }
+}
+
+auto Transaction::Interrupt() const -> void {
+    alpm_trans_interrupt(ALPM::GetHandle());
 }

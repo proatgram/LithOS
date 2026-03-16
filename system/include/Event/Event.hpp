@@ -42,7 +42,7 @@ namespace Event {
             }
 
             template <class Event>
-            static inline auto Emit(Event &&event) -> void {
+            static inline auto Emit(Event &&event = {}) -> void {
                 decltype(s_events)::iterator it = std::find_if(std::begin(s_events), std::end(s_events), [](const auto &pair) -> bool {
                     return pair.first == typeid(Event);
                 });

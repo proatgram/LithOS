@@ -1,5 +1,3 @@
-find_program(PACSTRAP pacstrap REQUIRED)
-
 add_executable(system)
 
 target_sources(system
@@ -12,6 +10,7 @@ target_link_libraries(system
         system::init
         system::ALPM
         system::Event
+        system::PosixSignals
 )
 
 add_subdirectory("src")

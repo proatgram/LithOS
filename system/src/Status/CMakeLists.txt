@@ -12,6 +12,8 @@ target_link_libraries(system_status_Status
     PUBLIC
         indicators::indicators
         system::Task
+        system::Event
+        system::PosixSignals
 )
 
 add_library(system_status_Task)

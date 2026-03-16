@@ -66,6 +66,7 @@ namespace ALPM {
             auto GetDatabaseUpdates() const -> std::vector<Database>;
 
             auto Apply() const -> void;
+            auto Interrupt() const -> void;
 
         private:
             bool m_valid{true};

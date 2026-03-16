@@ -29,5 +29,7 @@ namespace Status {
             std::vector<std::shared_ptr<Task>> m_tasks;
             std::deque<indicators::ProgressBar> m_progressBars;
             indicators::DynamicProgress<indicators::ProgressBar> m_dynamicProgress;
+
+            uint64_t m_sigintCallbackID{};
     };
 }  // namespace Status
